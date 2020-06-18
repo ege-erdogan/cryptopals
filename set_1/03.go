@@ -8,107 +8,84 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math"
-	"regexp"
 	"strings"
+	"unicode/utf8"
 )
 
-func decryptSingleByteXOR(ct string) string {
+var letterFrequencies = map[string]float64{
+	"A": 0.0849,
+	"B": 0.0149,
+	"C": 0.022,
+	"D": 0.0425,
+	"E": 0.1116,
+	"F": 0.0222,
+	"G": 0.0201,
+	"H": 0.0609,
+	"I": 0.0754,
+	"J": 0.0015,
+	"K": 0.0129,
+	"L": 0.0402,
+	"M": 0.024,
+	"N": 0.0675,
+	"O": 0.075,
+	"P": 0.0193,
+	"Q": 0.0009,
+	"R": 0.0759,
+	"S": 0.0633,
+	"T": 0.0936,
+	"U": 0.0276,
+	"V": 0.0097,
+	"W": 0.0256,
+	"X": 0.0015,
+	"Y": 0.0199,
+	"Z": 0.0007,
+}
+
+func decryptSingleByteXOR(ct string) (string, float64) {
 	bytes, _ := hex.DecodeString(ct)
 
-	var minError float64 = math.MaxFloat64
-	var minMessage string
+	minError := math.MaxFloat64
+	var message string
 
-	// for each possible key, calculate the error resulting from frequency analysis
 	for i := 0; i < 26; i++ {
 		key := byte('A' + i)
-		message := applyKey(bytes, key)
-		error := calculateFrequencyError(string(message))
+		possibleMessage := xorBytes(bytes, key)
+		errorValue := getChi2(string(possibleMessage))
 
-		if error < minError {
-			minError = error
-			minMessage = string(message)
-		}
-
-		fmt.Printf("[KEY=%s] %s\t%f\n", string(key), message, error)
-	}
-
-	return minMessage
-}
-
-// mean absolute error
-func calculateFrequencyError(msg string) float64 {
-	englishFreqs := map[string]float64{
-		"A": 8.49,
-		"B": 1.49,
-		"C": 2.2,
-		"D": 4.25,
-		"E": 11.16,
-		"F": 2.22,
-		"G": 2.01,
-		"H": 6.09,
-		"I": 7.54,
-		"J": 0.15,
-		"K": 1.29,
-		"L": 4.02,
-		"M": 2.4,
-		"N": 6.75,
-		"O": 7.5,
-		"P": 1.93,
-		"Q": 0.09,
-		"R": 7.59,
-		"S": 6.33,
-		"T": 9.36,
-		"U": 2.76,
-		"V": 0.97,
-		"W": 2.56,
-		"X": 0.15,
-		"Y": 1.99,
-		"Z": 0.07,
-	}
-	freqs, length := getLetterFreqs(msg)
-
-	error := 0.0
-	for char, freq := range freqs {
-		error += math.Abs(freq - englishFreqs[char])
-	}
-
-	return error / float64(length)
-}
-
-func getLetterFreqs(msg string) (map[string]float64, int) {
-	freqs := make(map[string]float64)
-	reg, _ := regexp.Compile("[^A-Z]+")
-
-	// make string uppercase and remove non-alphanumeric characters
-	modified := reg.ReplaceAllString(strings.ToUpper(msg), "")
-
-	for _, char := range modified {
-		freqs[string(char)]++
-	}
-
-	for letter, count := range freqs {
-		freq := (count / float64(len(msg))) * 100
-		freqs[letter] = freq
-	}
-
-	for i := 0; i < 26; i++ {
-		char := string('A' + i)
-		if _, exists := freqs[char]; !exists {
-			freqs[char] = 0.0
+		fmt.Printf("%s\t%f\n", possibleMessage, errorValue)
+		if errorValue < minError {
+			minError = errorValue
+			message = string(possibleMessage)
 		}
 	}
 
-	return freqs, len(modified)
+	return message, minError
 }
 
-func applyKey(msg []byte, key byte) []byte {
+func getChi2(msg string) float64 {
+	msg = strings.ToUpper(msg)
+
+	var counts [26]int
+	for _, char := range msg {
+		if 65 <= char && char <= 90 {
+			counts[char%65]++
+		}
+	}
+
+	errorValue := 0.0
+	length := float64(utf8.RuneCountInString(msg))
+	for i, observed := range counts {
+		expected := length * letterFrequencies[string('A'+i)]
+		errorValue += math.Pow(float64(observed)-expected, 2) / expected
+	}
+
+	return errorValue
+}
+
+func xorBytes(msg []byte, key byte) []byte {
 	ciphertext := make([]byte, len(msg))
 	for i, val := range msg {
 		ciphertext[i] = val ^ key
 	}
 	return ciphertext
-}
-
-func main() {
-	fmt.Println("Plaintext: " + decryptSingleByteXOR("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"))
 }
