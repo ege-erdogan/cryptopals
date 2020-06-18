@@ -6,13 +6,13 @@ package main
 
 import (
 	"encoding/hex"
-	"fmt"
 	"math"
 	"strings"
 	"unicode/utf8"
 )
 
 var letterFrequencies = map[string]float64{
+	" ": 0.182,
 	"A": 0.0849,
 	"B": 0.0149,
 	"C": 0.022,
@@ -47,12 +47,11 @@ func decryptSingleByteXOR(ct string) (string, float64) {
 	minError := math.MaxFloat64
 	var message string
 
-	for i := 0; i < 26; i++ {
-		key := byte('A' + i)
+	for i := 0; i < 256; i++ {
+		key := byte(i)
 		possibleMessage := xorBytes(bytes, key)
 		errorValue := getChi2(string(possibleMessage))
 
-		fmt.Printf("%s\t%f\n", possibleMessage, errorValue)
 		if errorValue < minError {
 			minError = errorValue
 			message = string(possibleMessage)
@@ -65,17 +64,34 @@ func decryptSingleByteXOR(ct string) (string, float64) {
 func getChi2(msg string) float64 {
 	msg = strings.ToUpper(msg)
 
-	var counts [26]int
+	var counts [27]int
+	totalCount := 0
+
 	for _, char := range msg {
 		if 65 <= char && char <= 90 {
-			counts[char%65]++
+			counts[1+(char%65)]++
+			totalCount++
+		} else if char == 32 {
+			counts[0]++
+			totalCount++
 		}
 	}
 
-	errorValue := 0.0
 	length := float64(utf8.RuneCountInString(msg))
+
+	if totalCount < int(0.8*length) {
+		return math.MaxFloat64
+	}
+
+	errorValue := 0.0
 	for i, observed := range counts {
-		expected := length * letterFrequencies[string('A'+i)]
+		var char string
+		if i == 0 {
+			char = " "
+		} else {
+			char = string('A' + i - 1)
+		}
+		expected := length * letterFrequencies[char]
 		errorValue += math.Pow(float64(observed)-expected, 2) / expected
 	}
 
