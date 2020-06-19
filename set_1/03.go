@@ -5,7 +5,6 @@
 package main
 
 import (
-	"encoding/hex"
 	"math"
 	"strings"
 	"unicode/utf8"
@@ -41,11 +40,10 @@ var letterFrequencies = map[string]float64{
 	"Z": 0.0007,
 }
 
-func decryptSingleByteXOR(ct string) (string, float64) {
-	bytes, _ := hex.DecodeString(ct)
-
+func decryptSingleByteXOR(bytes []byte) (string, float64, byte) {
 	minError := math.MaxFloat64
 	var message string
+	var bestKey byte
 
 	for i := 0; i < 256; i++ {
 		key := byte(i)
@@ -55,10 +53,11 @@ func decryptSingleByteXOR(ct string) (string, float64) {
 		if errorValue < minError {
 			minError = errorValue
 			message = string(possibleMessage)
+			bestKey = key
 		}
 	}
 
-	return message, minError
+	return message, minError, bestKey
 }
 
 func getChi2(msg string) float64 {

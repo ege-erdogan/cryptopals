@@ -22,7 +22,7 @@ func detectXOR() string {
 	minError := math.MaxFloat64
 	var message, minCiphertext string
 	for _, ciphertext := range lines {
-		possibleMessage, errorVal := decryptSingleByteXOR(ciphertext)
+		possibleMessage, errorVal, _ := decryptSingleByteXOR([]byte(ciphertext))
 		if errorVal < minError {
 			minError = errorVal
 			message = possibleMessage
