@@ -6,7 +6,6 @@ package main
 
 import (
 	"bufio"
-	"encoding/base64"
 	"fmt"
 	"math"
 	"math/bits"
@@ -56,7 +55,6 @@ func findBestKeySize(ciphertext []byte, maxKeysize, numBlocks int) int {
 			}
 		}
 
-		fmt.Printf("%d\t%f\n", keysize, distance)
 		if distance < minDistance {
 			minDistance = distance
 			bestKeysize = keysize
@@ -97,10 +95,4 @@ func readFileToString(path string) string {
 		result += scanner.Text()
 	}
 	return result
-}
-
-func main() {
-	decoded := readFileToString("06_input.txt")
-	ciphertext, _ := base64.StdEncoding.DecodeString(decoded)
-	fmt.Println(string(breakRepeatingKeyXOR([]byte(ciphertext))))
 }
