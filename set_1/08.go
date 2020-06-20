@@ -1,9 +1,9 @@
 package main
 
 import (
-	"bytes"
-	"fmt"
 	"math"
+
+	"../util"
 )
 
 // Set 1 - Basics
@@ -18,37 +18,17 @@ func detectAESECB(ciphertexts [][]byte) []byte {
 	blockSize := 16
 	var maxCiphertext []byte
 
-	for index, ciphertext := range ciphertexts {
+	for _, ciphertext := range ciphertexts {
 		numBlocks := int(math.Ceil(float64(len(ciphertext)) / float64(blockSize)))
-		blocks := getFirstNBlocks(ciphertext, blockSize, numBlocks)
-		numUnique := uniqueCount(blocks)
+		blocks := util.GetFirstNBlocks(ciphertext, blockSize, numBlocks)
+		numUnique := util.UniqueCount(blocks)
 		score := float64(numBlocks) / float64(numUnique)
 
 		if score > maxScore {
 			maxScore = score
 			maxCiphertext = ciphertext
-			fmt.Println(index)
 		}
 	}
 
 	return maxCiphertext
-}
-
-func uniqueCount(list [][]byte) int {
-	var uniques [][]byte
-	for _, val := range list {
-		if !contains(uniques, val) {
-			uniques = append(uniques, val)
-		}
-	}
-	return len(uniques)
-}
-
-func contains(list [][]byte, target []byte) bool {
-	for _, val := range list {
-		if bytes.Equal(val, target) {
-			return true
-		}
-	}
-	return false
 }

@@ -5,18 +5,18 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"math"
 	"math/bits"
-	"os"
+
+	"../util"
 )
 
 func breakRepeatingKeyXOR(ciphertext []byte) []byte {
 	keysize := findBestKeySize(ciphertext, 64, 8)
 
 	numBlocks := int(math.Ceil(float64(len(ciphertext)) / float64(keysize)))
-	blocks := getFirstNBlocks(ciphertext, keysize, numBlocks)
+	blocks := util.GetFirstNBlocks(ciphertext, keysize, numBlocks)
 
 	transposed := make([][]byte, keysize)
 	for i := 0; i < keysize; i++ {
@@ -44,7 +44,7 @@ func findBestKeySize(ciphertext []byte, maxKeysize, numBlocks int) int {
 	var bestKeysize int
 
 	for keysize := 2; keysize <= maxKeysize; keysize++ {
-		blocks := getFirstNBlocks(ciphertext, keysize, numBlocks)
+		blocks := util.GetFirstNBlocks(ciphertext, keysize, numBlocks)
 
 		distance := 0.0
 		for i, b1 := range blocks {
@@ -64,35 +64,10 @@ func findBestKeySize(ciphertext []byte, maxKeysize, numBlocks int) int {
 	return bestKeysize
 }
 
-func getFirstNBlocks(ct []byte, size, count int) [][]byte {
-	result := make([][]byte, count)
-	for i := 0; i < count; i++ {
-		var block []byte
-		end := (i + 1) * size
-		if end > len(ct) {
-			block = ct[i*size:]
-		} else {
-			block = ct[i*size : end]
-		}
-		result[i] = block
-	}
-	return result
-}
-
 func getHammingDistance(b1, b2 []byte) int {
 	distance := 0
 	for pos, val := range b1 {
 		distance += bits.OnesCount(uint(val ^ b2[pos]))
 	}
 	return distance
-}
-
-func readFileToString(path string) string {
-	file, _ := os.Open(path)
-	var result string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		result += scanner.Text()
-	}
-	return result
 }
