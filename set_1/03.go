@@ -40,9 +40,9 @@ var letterFrequencies = map[string]float64{
 	"Z": 0.0007,
 }
 
-func decryptSingleByteXOR(bytes []byte) (string, float64, byte) {
+func decryptSingleByteXOR(bytes []byte) ([]byte, float64, byte) {
 	minError := math.MaxFloat64
-	var message string
+	var message []byte
 	var bestKey byte
 
 	for i := 0; i < 256; i++ {
@@ -52,7 +52,7 @@ func decryptSingleByteXOR(bytes []byte) (string, float64, byte) {
 
 		if errorValue < minError {
 			minError = errorValue
-			message = string(possibleMessage)
+			message = possibleMessage
 			bestKey = key
 		}
 	}

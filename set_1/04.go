@@ -14,13 +14,13 @@ import (
 
 const inputTextURL = "https://cryptopals.com/static/challenge-data/4.txt"
 
-func detectXOR() string {
-	lines := readLines()
+func detectXOR() []byte {
+	lines := readLines("../inputs/04.txt")
 
 	// for each line, find the plaintext with min. error
 	// then find the min. error plaintext out of all the lines
 	minError := math.MaxFloat64
-	var message, minCiphertext string
+	var message, minCiphertext []byte
 	for _, ciphertext := range lines {
 		possibleMessage, errorVal, _ := decryptSingleByteXOR([]byte(ciphertext))
 		if errorVal < minError {
@@ -30,19 +30,19 @@ func detectXOR() string {
 		}
 	}
 
-	fmt.Println("Ciphertext: " + minCiphertext)
-	fmt.Println("Plaintext: " + message)
+	fmt.Println("Ciphertext: " + string(minCiphertext))
+	fmt.Println("Plaintext: " + string(message))
 	return minCiphertext
 }
 
 // read lines from file to an array of strings
-func readLines() []string {
-	file, _ := os.Open("04_input.txt")
+func readLines(path string) [][]byte {
+	file, _ := os.Open(path)
 
-	var lines []string
+	var lines [][]byte
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		lines = append(lines, strings.TrimSuffix(scanner.Text(), "\n"))
+		lines = append(lines, []byte(strings.TrimSuffix(scanner.Text(), "\n")))
 	}
 
 	return lines
