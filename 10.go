@@ -6,16 +6,13 @@ package main
 
 import (
 	"crypto/aes"
-	"encoding/base64"
 	"errors"
-	"fmt"
 	"math"
 
 	"./util"
 )
 
 // This is the same code as exercise 7, except it encrypts instead of decrypting
-
 func encryptAESECB128(plaintext, key []byte) []byte {
 	var ciphertext []byte
 
@@ -39,8 +36,8 @@ func encryptCBC(message, iv, key []byte) []byte {
 	for needPadding(targetLength) {
 		targetLength++
 	}
-
 	message = pkcsPadding(message, targetLength)
+
 	messageBlocks := util.GetFirstNBlocks(message, 16, -1)
 	var ciphertext []byte
 
@@ -89,13 +86,4 @@ func xor(b1, b2 []byte) ([]byte, error) {
 		result[i] = val ^ b2[i]
 	}
 	return result, nil
-}
-
-func main() {
-	key := []byte("YELLOW SUBMARINE")
-	temp, _ := base64.StdEncoding.DecodeString(util.ReadFileToString("inputs/10.txt"))
-	text := []byte(temp)
-	iv := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-	result := decryptCBC(text, iv, key)
-	fmt.Println(string(result))
 }
