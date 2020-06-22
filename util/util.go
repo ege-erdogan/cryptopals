@@ -3,6 +3,7 @@ package util
 import (
 	"bufio"
 	"bytes"
+	"math"
 	"os"
 	"strings"
 )
@@ -56,6 +57,10 @@ func Contains(list [][]byte, target []byte) bool {
 
 // GetFirstNBlocks first `count` blocks of given size from the slice
 func GetFirstNBlocks(ct []byte, size, count int) [][]byte {
+	if count == -1 {
+		// get all blocks
+		count = int(math.Ceil(float64(len(ct)) / float64(size)))
+	}
 	result := make([][]byte, count)
 	for i := 0; i < count; i++ {
 		var block []byte
@@ -68,4 +73,15 @@ func GetFirstNBlocks(ct []byte, size, count int) [][]byte {
 		result[i] = block
 	}
 	return result
+}
+
+// RepeatingKeyXOR applies the key to the message by repeating the key until the end of the message
+func RepeatingKeyXOR(message, key []byte) []byte {
+	ciphertext := make([]byte, len(message))
+	for pos, plainByte := range message {
+		keyByte := key[pos%len(key)]
+		encryptedByte := plainByte ^ keyByte
+		ciphertext[pos] = encryptedByte
+	}
+	return ciphertext
 }
