@@ -46,7 +46,7 @@ func encryptCBC(message, iv, key []byte) []byte {
 		aesInput, _ := xor(xorInput, block)
 		ciphertextBlock := encryptAESECB128(aesInput, key)
 		xorInput = ciphertextBlock
-		for _, val := range ciphertextBlock[0:16] {
+		for _, val := range ciphertextBlock {
 			ciphertext = append(ciphertext, val)
 		}
 	}
