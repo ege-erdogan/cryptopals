@@ -1,3 +1,7 @@
+// Set 1 - Basics
+// Challenge 8
+// Detect AES in ECB mode
+
 package main
 
 import (
@@ -5,10 +9,6 @@ import (
 
 	"./util"
 )
-
-// Set 1 - Basics
-// Challenge 8
-// Detect AES in ECB mode
 
 // ECB mode encrypts identical plaintext blocks to identical ciphertext blocks
 // the ciphertext with the least amount of unique blocks is likely to be encrypted with ECB

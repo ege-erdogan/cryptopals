@@ -54,9 +54,3 @@ func generateAdminProfile() []byte {
 
 	return result
 }
-
-func main() {
-	result := generateAdminProfile()
-	fmt.Println(string(decryptAESECB128(result, key)))
-	fmt.Println(decryptAndParse(result))
-}
