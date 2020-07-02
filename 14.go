@@ -79,8 +79,8 @@ func blockChangeCount(b1, b2 [][]byte) int {
 func harderBreakByteAtATime(blockSize, decodeIndex int, knownMessage []byte) byte {
 	prefixLength := findPrefixLength(harderRandomEncryptOracle)
 	prefixBlocks := int(math.Ceil(float64(prefixLength) / 16.0))
-	prefixInputLength := (16 - (prefixLength % 16))
-	inputLength := blockSize - (decodeIndex % blockSize) - 1 + prefixInputLength
+	prefixInputLength := 16 - (prefixLength % 16)
+	inputLength := prefixInputLength + blockSize - (decodeIndex % blockSize) - 1
 
 	input := make([]byte, inputLength)
 	blockIndex := decodeIndex / blockSize
@@ -89,18 +89,19 @@ func harderBreakByteAtATime(blockSize, decodeIndex int, knownMessage []byte) byt
 
 	var prefix []byte // first (blocksize - 1) characters of the block we search
 	if blockIndex == 0 {
-		prefix = append(input, knownMessage...)
+		prefix = append(input[prefixInputLength:], knownMessage...)
 	} else {
 		// last (blockSize - 1) characters of the known message
 		prefix = knownMessage[len(knownMessage)-blockSize+1:]
 	}
-	nextByte := harderMatchOneByte(ctBlock, prefix, prefixBlocks, blockSize)
+	nextByte := harderMatchOneByte(ctBlock, prefix, prefixBlocks, blockSize, prefixInputLength)
 	return nextByte
 }
 
-func harderMatchOneByte(targetBlock, prefix []byte, blocksRemoved, blockSize int) byte {
+func harderMatchOneByte(targetBlock, prefix []byte, blocksRemoved, blockSize, prefixInputLength int) byte {
 	for i := 1; i < 256; i++ { // trying every possible byte
-		message := append(prefix, byte(i))
+		temp := make([]byte, prefixInputLength)
+		message := append(append(temp, prefix...), byte(i))
 		ct := harderRandomEncryptOracle(message)[blocksRemoved*blockSize:]
 		candidateBlock := ct[0:blockSize]
 		if string(candidateBlock) == string(targetBlock) {
@@ -113,8 +114,6 @@ func harderMatchOneByte(targetBlock, prefix []byte, blocksRemoved, blockSize int
 // call this as main function to run
 func solveChallenge14() {
 	blockSize := 16
-	// prefixLength := findPrefixLength()
-	// messageLength := len(harderRandomEncryptOracle([]byte{})) - prefixLength
 	var message []byte
 
 	for i := 0; i < 137; i++ {
